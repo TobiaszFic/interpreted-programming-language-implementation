@@ -10,6 +10,7 @@
 
 static struct number* visit__node(struct node* node, struct context* context);
 static struct number* interpreter__subInterpret(struct node* node, struct context* parentContext); 
+static struct number* visit__nodeList(struct nodeList* nodes, struct context* context);
 
 static struct number* visit__numNode(struct node* node, struct context* context) {
 	return number__initFromToken(node->exp.intExp, node, context);
@@ -96,10 +97,10 @@ static struct number* visit__ifNode(struct node* node, struct context* context) 
 	for(int i = 0; i<node->exp.ifNode.len; i++) {
 		condition_res = interpreter__subInterpret(node->exp.ifNode.conditions[i], context);
 		if(isTrue(condition_res))
-			return interpreter__subInterpret(node->exp.ifNode.expressions[i], context);
+			return visit__nodeList(node->exp.ifNode.bodies[i], context);
 	}
-	if(node->exp.ifNode.elseExp != NULL)
-		return interpreter__subInterpret(node->exp.ifNode.elseExp, context);
+	if(node->exp.ifNode.elseBody != NULL)
+		return visit__nodeList(node->exp.ifNode.elseBody, context);
 
 	return NULL;
 }
@@ -109,7 +110,7 @@ struct number* visit__whileNode(struct node* node, struct context* context) {
 		if(!isTrue(interpreter__subInterpret(node->exp.nWhile.condition, context))) {
 			break;
 		}
-		interpreter__subInterpret(node->exp.nWhile.body, context);
+		visit__nodeList(node->exp.nWhile.body, context);
 	}
 	return NULL;
 }
@@ -125,7 +126,7 @@ struct number* visit__funCallNode(struct node* node, struct context* context) {
 	struct context* funcContext = context__init(definition->exp.funcDef.name->value.id_str, context, definition->pos_start);
 	for(int i = 0; i<definition->exp.funcDef.argNum; i++)
 		funcContext->symbolTable->add(funcContext, definition->exp.funcDef.args[i], visit__node(node->exp.funcCall.args[i], context));
-	return visit__node(definition->exp.funcDef.body, funcContext);
+	return visit__nodeList(definition->exp.funcDef.body, funcContext);
 }
 
 static struct number* visit__node(struct node* node, struct context* context) {
@@ -164,13 +165,19 @@ static struct number* visit__node(struct node* node, struct context* context) {
 	}
 	return result;
 }
+static struct number* visit__nodeList(struct nodeList* nodes, struct context* context) {
+	struct number* returnVal = NULL;
+	for (int i = 0; i< nodes->len; i++)
+		returnVal = visit__node(nodes->items[i], context);
+	return returnVal;
+}
 
-static struct number* interpreter__interpret(struct node* node) {
+static struct number* interpreter__interpret(struct nodeList* nodes) {
 	static struct context* context = NULL;
 	if(context == NULL){
 		context = context__init("program", NULL, 0); 
 	}
-	return visit__node(node, context);
+	return visit__nodeList(nodes, context);
 }
 
 static struct number* interpreter__subInterpret(struct node* node, struct context* parentContext) {
@@ -180,7 +187,7 @@ static struct number* interpreter__subInterpret(struct node* node, struct contex
 
 struct interpreter* interpreter__init() {
 	struct interpreter* interpreter = (struct interpreter*)calloc(1, sizeof(struct interpreter));
-	interpreter->interpret = interpreter__interpret;
+	interpreter->interpret = &interpreter__interpret;
 	return interpreter;
 }
 

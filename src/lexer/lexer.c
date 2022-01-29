@@ -39,41 +39,6 @@ static void lexer__lex(struct lexer* lexer) {
 	}
 	
 	while (lexer->c != EOF) {
-		/*
-		switch (lexer->c) {
-			case '+':
-				lexer->tokenList.items = addSimpleToken(lexer, T_PLUS);
-				break;
-			case '-':
-				lexer->tokenList.items = addSimpleToken(lexer, T_MINUS);
-				break;
-			case '*':
-				lexer->tokenList.items = addSimpleToken(lexer, T_MUL);
-				break;
-			case '/':
-				lexer->tokenList.items = addSimpleToken(lexer, T_DIV);
-				break;
-			case '(':
-				lexer->tokenList.items = addSimpleToken(lexer, T_LPAREN);
-				break;
-			case ')':
-				lexer->tokenList.items = addSimpleToken(lexer, T_RPAREN);
-				break;
-			default:
-				if(lexer->c >= 48 && lexer->c <= 57) {
-					lexer->tokenList.items = addNumber(lexer);
-					break;
-				} else if(lexer->c == '\t' || lexer->c == ' ' || lexer->c == '\n' || lexer->c == '\0'|| lexer->c == '\r') {
-					lexer->advance(lexer);
-					break;
-				} 
-				printf("%u", lexer->c);
-				putchar(lexer->c);
-				warning_lexer("Illegal character", lexer);
-				lexer->advance(lexer);
-				break;
-		}
-		*/
 		if(lexer->c == '\0')
 			lexer->getline(lexer);
 		else if(lexer->c == '\t' || lexer->c == ' ' || lexer->c == '\n')
@@ -88,6 +53,10 @@ static void lexer__lex(struct lexer* lexer) {
 			lexer->tokenList.items = addSimpleToken(lexer, T_LPAREN);
 		else if(lexer->c == ')')
 			lexer->tokenList.items = addSimpleToken(lexer, T_RPAREN);
+		else if(lexer->c == '{')
+			lexer->tokenList.items = addSimpleToken(lexer, T_LBRACE);
+		else if(lexer->c == '}')
+			lexer->tokenList.items = addSimpleToken(lexer, T_RBRACE);
 		else if(lexer->c == ',')
 			lexer->tokenList.items = addSimpleToken(lexer, T_COMMA);
 		else if(lexer->c == '=')
@@ -100,6 +69,8 @@ static void lexer__lex(struct lexer* lexer) {
 			lexer->tokenList.items = makeLesser(lexer);
 		else if(lexer->c == '-')
 			lexer->tokenList.items = makeArrow(lexer); //returns a minus when doesnt find arrow
+		else if(lexer->c == ';')
+			lexer->tokenList.items = addSimpleToken(lexer, T_SEMI);
 		else if(lexer->c >= 48 && lexer->c <= 57)
 			lexer->tokenList.items = addNumber(lexer);
 		else if((lexer->c >= 65 && lexer->c <= 90) ||(lexer->c >= 97 && lexer->c <= 122))
@@ -113,7 +84,7 @@ static void lexer__lex(struct lexer* lexer) {
 	}
 	lexer->tokenList.items = addSimpleToken(lexer, T_EOF);
 
-	//lexer->show(lexer);
+	lexer->show(lexer);
 
 }
 

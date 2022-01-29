@@ -1,4 +1,19 @@
 
+
+toDo:
+-token.h						: add semicolon token *
+-token.c						: add semicolon token in human table *
+-lexer.c						: add semicolon token in lexer
+-lexer.c						: add semicolon token in lexer
+-parser/grammar/arithmetic.c			: add statements rule
+-parser.h 					:add explist object to parser
+-parser.h 					:add explist object to funcdef
+-parser/grammar/arithmetic.c	: add braces and statements in func def
+-parser.h 					:add explist object to while loop
+-parser/grammar/arithmetic.c	: add braces and statements in while loop
+
+statements	: (expr SEMICOLON)*
+
 expr		: KEYWORD:VAR IDENTIFIER EX comp-expr
 			: comp-expr ((KEYWORD:AND | KEYWORD:OR | KEYWORD:XOR) comp-expr)*
 

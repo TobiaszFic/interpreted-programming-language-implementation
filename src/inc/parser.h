@@ -16,11 +16,20 @@ however it advances across tokens, not characters.
 		int length;
 	}tokenList;
 */
+struct nodeList {
+	struct node** items;
+	int len;
+
+	struct nodeList* (*append)(struct nodeList* nodes, struct node* item);
+	void (*show)(struct nodeList* nodes);
+};
+
+struct nodeList* nodeList__init();
 
 struct parser {
 	//parameters
 	struct tokenList tokenList; //list of tokens - input
-	struct node* AST;//abstract syntax tree root - output of the parser and input of the interpreter
+	struct nodeList* AST;//abstract syntax tree root - output of the parser and input of the interpreter
 
 	int position;//within token list
 	struct token* currentToken;
@@ -29,14 +38,10 @@ struct parser {
 
 	//methods
 	struct token*	(*advance)	(struct parser*);
-	struct node*	(*factor)	(struct parser*);
-	struct node*	(*term)		(struct parser*);
-	struct node*	(*arit)		(struct parser*);
-	struct node*	(*exp)		(struct parser*);
-	struct node*	(*comp)		(struct parser*);
-	struct node*	(*parse)	(struct parser*);
+	struct nodeList*	(*parse)	(struct parser*);
 };
 
+struct nodeList* parser__statements(struct parser* parser);
 struct parser* parser__init(struct lexer* initLexer);
 void parser__cleanup(struct parser* parser);
 #endif

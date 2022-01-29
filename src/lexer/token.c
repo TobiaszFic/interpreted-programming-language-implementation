@@ -26,8 +26,11 @@ static const char T_HUMAN_IDTABLE[30][15] = {
 	"T_NOT",
 	"T_LPAREN",
 	"T_RPAREN",
+	"T_LBRACE",
+	"T_RBRACE",
 	"T_COMMA",
 	"T_ARROW",
+	"T_SEMI",
 	"T_EOF"
 };
 

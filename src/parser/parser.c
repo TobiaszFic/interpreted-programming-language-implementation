@@ -20,15 +20,15 @@ static struct token* parser__advance(struct parser* parser) {
 	return parser->currentToken;
 }
 
-static struct node* parser__parse (struct parser* parser) { //calls top-most node creation
-	parser->AST = parser->exp(parser);
+static struct nodeList* parser__parse (struct parser* parser) { //calls top-most node creation
+	parser->AST = parser__statements(parser);
 	if(parser->currentToken->type != T_EOF) {
 		error_parser("expected '+', '-', '*' or '/'", parser);
 	}
-	//printf("\nPARSER: ");
-	//fflush(stdout);
-	//parser->AST->show(parser->AST);
-	//fflush(stdout);
+	printf("\nPARSER: ");
+	fflush(stdout);
+	parser->AST->show(parser->AST);
+	fflush(stdout);
 	return parser->AST;
 }
 
@@ -44,19 +44,9 @@ struct parser* parser__init(struct lexer* initLexer) {
 	parser->currentToken = NULL;
 
 	parser->parentLexer = initLexer;
-
+ 
 	parser->advance = &parser__advance;
 	parser->parse	= &parser__parse;
-
-	//Grammar functions, declared in grammar/grammar.h, defined in:
-	//----------------------------------------------------------------
-	//arithmetic.c:
-		parser->factor	= &parser__factor;
-		parser->term	= &parser__term;
-		parser->arit	= &parser__arithmeticExp;
-		parser->comp	= &parser__comparison;
-		parser->exp		= &parser__expression;
-	//----------------------------------------------------------------
 
 	parser->advance(parser);
 	return parser;

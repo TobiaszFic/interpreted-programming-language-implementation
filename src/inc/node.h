@@ -48,21 +48,21 @@ struct node {
 		} varAcc; //variable access
 		struct {
 			struct node** conditions;
-			struct node** expressions;
+			struct nodeList** bodies;
 			int len;
 
 			struct node* elseCond;
-			struct node* elseExp;
+			struct nodeList* elseBody;
 		} ifNode;
 		struct {
 			struct node* condition;
-			struct node* body;
+			struct nodeList* body;
 		} nWhile;
 		struct {
 			struct token* name;
 			struct token** args;
 			int argNum;
-			struct node* body;
+			struct nodeList* body;
 		} funcDef;
 		struct {
 			struct token* name;
@@ -85,9 +85,9 @@ struct node* node__init__binExp(struct token* op, struct node* left, struct node
 struct node* node__init__unaExp(struct token* op, struct node* operand, struct parser* parentParser);
 struct node* node__init__varAsn(struct token* varName, struct node* binExp, struct parser* parentParser);
 struct node* node__init__varAcc(struct token* varName, struct parser* parentParser);
-struct node* node__init__ifNode(struct node** conditions, struct node** expressions, int len, struct node* elseCon, struct node* elseExp, struct parser* parentParser);
-struct node* node__init__nWhile(struct node* condition, struct node* body, struct parser* parentParser);
-struct node* node__init__funcDef(struct token* name, struct token** args, int argNum, struct node* body, struct parser* parentParser);
+struct node* node__init__ifNode(struct node** conditions, struct nodeList** bodies, int len, struct node* elseCon, struct nodeList* elseExp, struct parser* parentParser);
+struct node* node__init__nWhile(struct node* condition, struct nodeList* body, struct parser* parentParser);
+struct node* node__init__funcDef(struct token* name, struct token** args, int argNum, struct nodeList* body, struct parser* parentParser);
 struct node* node__init__funcCall(struct token* token, struct node** args, int argNum, struct parser* parentParser);
 
 

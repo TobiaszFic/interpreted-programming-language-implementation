@@ -44,18 +44,18 @@ void node__show(struct node* node) {
 		printf("\nIF: ");
 		node->exp.ifNode.conditions[0]->show(node->exp.ifNode.conditions[0]);
 		printf("\n THEN: ");
-		node->exp.ifNode.expressions[0]->show(node->exp.ifNode.expressions[0]);
+		node->exp.ifNode.bodies[0]->show(node->exp.ifNode.bodies[0]);
 		
 		for(int i = 1; i<node->exp.ifNode.len; i++) {
 			printf("\nELIF: ");
 			node->exp.ifNode.conditions[i]->show(node->exp.ifNode.conditions[i]);
 			printf("\n THEN: ");
-			node->exp.ifNode.expressions[i]->show(node->exp.ifNode.expressions[i]);
+			node->exp.ifNode.bodies[i]->show(node->exp.ifNode.bodies[i]);
 		}
 
-		if(node->exp.ifNode.elseExp != NULL){
+		if(node->exp.ifNode.elseBody != NULL){
 			printf("\nELSE: ");
-			node->exp.ifNode.elseExp->show(node->exp.ifNode.elseExp);
+			node->exp.ifNode.elseBody->show(node->exp.ifNode.elseBody);
 		}
 
 	}
@@ -168,28 +168,28 @@ struct node* node__init__varAcc(struct token* varName, struct parser* parentPars
 	return node;
 }
 
-struct node* node__init__ifNode(struct node** conditions, struct node** expressions, int len, struct node* elseCon, struct node* elseExp, struct parser* parentParser ) {
+struct node* node__init__ifNode(struct node** conditions, struct nodeList** bodies, int len, struct node* elseCon, struct nodeList* elseBody, struct parser* parentParser ) {
 	struct node* node = (struct node*)calloc(1, sizeof(struct node));
 	node->type = N_IFNODE;
 
 	node->exp.ifNode.conditions = conditions;
-	node->exp.ifNode.expressions = expressions;
+	node->exp.ifNode.bodies = bodies;
 	node->exp.ifNode.len = len;
 	node->exp.ifNode.elseCond = elseCon;
-	node->exp.ifNode.elseExp = elseExp;
+	node->exp.ifNode.elseBody = elseBody;
 
 	node->parentLexer = parentParser->parentLexer;
 	node->parentToken = parentParser->currentToken;
 	node->pos_start = node->exp.ifNode.conditions[0]->pos_start;
-	node->pos_end = node->exp.ifNode.expressions[len - 1]->pos_end;
-	if(node->exp.ifNode.elseExp != NULL && node->exp.ifNode.elseCond != NULL)
+	node->pos_end = node->exp.ifNode.bodies[len - 1]->items[node->exp.ifNode.bodies[len-1]->len - 1]->pos_end;
+	if(node->exp.ifNode.elseBody != NULL && node->exp.ifNode.elseCond != NULL)
 		node->pos_end = node->exp.ifNode.elseCond->pos_end;
 
 	node->show = &node__show;
 	return node;
 }
 
-struct node* node__init__nWhile(struct node* condition, struct node* body, struct parser* parentParser) {
+struct node* node__init__nWhile(struct node* condition, struct nodeList* body, struct parser* parentParser) {
 	struct node* node = (struct node*)calloc(1, sizeof(struct node));
 	node->type = N_WHILE;
 
@@ -199,12 +199,12 @@ struct node* node__init__nWhile(struct node* condition, struct node* body, struc
 	node->parentLexer = parentParser->parentLexer;
 	node->parentToken = parentParser->currentToken;
 	node->pos_start = node->exp.nWhile.condition->pos_start;
-	node->pos_end = node->exp.nWhile.body->pos_end;
+	node->pos_end = node->exp.nWhile.body->items[node->exp.nWhile.body->len - 1]->pos_end;
 
 	node->show = &node__show;
 	return node;
 }
-struct node* node__init__funcDef(struct token* name, struct token** args, int argNum, struct node* body, struct parser* parentParser) {
+struct node* node__init__funcDef(struct token* name, struct token** args, int argNum, struct nodeList* body, struct parser* parentParser) {
 	struct node* node = (struct node*)calloc(1, sizeof(struct node));
 	node->type = N_FUNDEF;
 
@@ -216,7 +216,7 @@ struct node* node__init__funcDef(struct token* name, struct token** args, int ar
 	node->parentLexer = parentParser->parentLexer;
 	node->parentToken = parentParser->currentToken;
 	node->pos_start = node->exp.funcDef.name->pos_start;
-	node->pos_end = node->exp.funcDef.body->pos_end;
+	node->pos_end = node->exp.funcDef.body->items[node->exp.funcDef.body->len - 1]->pos_end;
 	
 	node->show = &node__show;
 	return node;

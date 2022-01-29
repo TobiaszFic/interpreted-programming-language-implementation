@@ -33,59 +33,99 @@ struct node* parser__funcDef(struct parser* parser) {
 	if(parser->currentToken->type != T_ARROW)
 		error_parser("expecting \"->\" in function declaration.", parser);
 	parser->advance(parser);
-	struct node* body = parser__expression(parser);
+
+	if(parser->currentToken->type != T_LBRACE)
+		error_parser("expecting \'{\' in function declaration.", parser);
+	parser->advance(parser);
+	struct nodeList* body = parser__statements(parser);
+	if(parser->currentToken->type != T_RBRACE)
+		error_parser("Expected \'}\' at the end of function definition",  parser );
+	parser->advance(parser);
+
 	return node__init__funcDef(name, args, argNum, body, parser);
 }
 
 struct node* parser__whileExp (struct parser* parser) { 
 	struct node* condition;
-	struct node* body;
+	struct nodeList* body;
 	parser->advance(parser);
 	condition = parser__expression(parser);
 	if(parser->currentToken->type != T_KEYWORD || strcmp(parser->currentToken->value.id_str,"do"))
 		error_parser("expecting \"do\" keyword after \"while\" condition.", parser);
 	parser->advance(parser);
-	body = parser__expression(parser);
+	if(parser->currentToken->type != T_LBRACE)
+		error_parser("expecting \'{\' in function declaration.", parser);
+	parser->advance(parser);
+	body = parser__statements(parser);
+	if(parser->currentToken->type != T_RBRACE)
+		error_parser("Expected \'}\' at the end of function definition",  parser );
+	parser->advance(parser);
 	return node__init__nWhile(condition, body, parser);
 }	
 
 struct node* parser__ifExp (struct parser* parser){
 	struct node** conds = (struct node**)calloc(2, sizeof(struct node*));
-	struct node** exprs = (struct node**)calloc(2, sizeof(struct node*));
+	struct nodeList** bodies = (struct nodeList**)calloc(2, sizeof(struct nodeList)); 	
 	int len = 1;
 	struct node* elseCond = NULL;
-	struct node* elseExp = NULL;
+	struct nodeList* elseBody = NULL;
 	parser->advance(parser);
 
 	conds[0] = parser__expression(parser);
 	if(parser->currentToken->type != T_KEYWORD || strcmp(parser->currentToken->value.id_str,"then"))
 		error_parser("expecting \"then\" keyword after \"if\" condition", parser);
 	parser->advance(parser);
-	exprs[0] = parser__expression(parser);
+
+	bodies[0] = nodeList__init();
+	if(parser->currentToken->type != T_LBRACE)
+		error_parser("expecting \'{\' in function declaration.", parser);
+	parser->advance(parser);
+	bodies[0] = parser__statements(parser);
+	if(parser->currentToken->type != T_RBRACE)
+		error_parser("Expected \'}\' at the end of function definition",  parser );
+	parser->advance(parser);
 
 	while(parser->currentToken->type == T_KEYWORD && !strcmp(parser->currentToken->value.id_str,"elif")) {
 		conds = (struct node**)realloc(conds, (len+2)*sizeof(struct node*));
-		exprs = (struct node**)realloc(exprs, (len+2)*sizeof(struct node*));
+		bodies = (struct nodeList**)realloc(bodies, (len+2)*sizeof(struct nodeList*));
 		parser->advance(parser);
+
 		conds[len] = parser__expression(parser);
 		if(parser->currentToken->type != T_KEYWORD || strcmp(parser->currentToken->value.id_str,"then"))
 			error_parser("expecting \"then\" keyword after \"if\" condition", parser);
 		parser->advance(parser);
-		exprs[len] = parser__expression(parser);
+
+		bodies[len] = nodeList__init();
+		if(parser->currentToken->type != T_LBRACE)
+			error_parser("expecting \'{\' in elif statement.", parser);
+		parser->advance(parser);
+		bodies[len] = parser__statements(parser);
+		if(parser->currentToken->type != T_RBRACE)
+			error_parser("Expected \'}\' at the end of an elif statement.",  parser );
+		parser->advance(parser);
+
 		len++;
 	}
 	if(parser->currentToken->type == T_KEYWORD && !strcmp(parser->currentToken->value.id_str,"else")) {
 		parser->advance(parser);
-		elseExp = parser__expression(parser);
+
+		elseBody = nodeList__init();
+		if(parser->currentToken->type != T_LBRACE)
+			error_parser("expecting \'{\' in elif statement.", parser);
+		parser->advance(parser);
+		elseBody = parser__statements(parser);
+		if(parser->currentToken->type != T_RBRACE)
+			error_parser("Expected \'}\' at the end of an elif statement.",  parser );
+		parser->advance(parser);
 	}
-	return node__init__ifNode(conds, exprs, len, elseCond, elseExp, parser);
+	return node__init__ifNode(conds, bodies, len, elseCond, elseBody, parser);
 }
 
 
 struct node* parser__atom (struct parser* parser) {
 	if(parser->currentToken->type == T_LPAREN) {
 		parser->advance(parser);
-		struct node* expression = parser->exp(parser);
+		struct node* expression = parser__expression(parser);
 		if(parser->currentToken->type != T_RPAREN) {
 			error_parser("missing\")\"", parser);
 		}
@@ -142,14 +182,14 @@ struct node* parser__factor (struct parser* parser) {
 	if(parser->currentToken->type == T_PLUS || parser->currentToken->type == T_MINUS) {
 		struct token* opToken = parser->currentToken;
 		parser->advance(parser);
-		struct node* operand = parser->factor(parser);
+		struct node* operand = parser__factor(parser);
 		return node__init__unaExp(opToken, operand, parser);
 	}
 	return parser__call(parser);
 }
 //term
 struct node* parser__term (struct parser* parser) {
-	struct node* leftNode = parser->factor(parser);
+	struct node* leftNode = parser__factor(parser);
 	struct node* leftNode_Temp;
 	struct node* rightNode;	
 	struct token* opToken;
@@ -157,7 +197,7 @@ struct node* parser__term (struct parser* parser) {
 	while(parser->currentToken->type == T_DIV || parser->currentToken->type == T_MUL || parser->currentToken->type == T_MOD) {
 		opToken = parser->currentToken;
 		parser->advance(parser);
-		rightNode = parser->factor(parser);
+		rightNode = parser__factor(parser);
 		leftNode_Temp = leftNode;
 		leftNode = node__init__binExp(opToken, leftNode_Temp, rightNode, parser);
 	}
@@ -166,14 +206,14 @@ struct node* parser__term (struct parser* parser) {
 }
 
 struct node* parser__arithmeticExp (struct parser* parser) {
-	struct node* leftNode = parser->term(parser);
+	struct node* leftNode = parser__term(parser);
 	struct node* leftNode_Temp;
 	struct node* rightNode;	
 	struct token* opToken;
 	while(parser->currentToken->type == T_PLUS || parser->currentToken->type == T_MINUS) {
 		opToken = parser->currentToken;
 		parser->advance(parser);
-		rightNode = parser->term(parser);
+		rightNode = parser__term(parser);
 		leftNode_Temp = leftNode;
 		leftNode = node__init__binExp(opToken, leftNode_Temp, rightNode, parser);
 	}
@@ -183,16 +223,16 @@ struct node* parser__arithmeticExp (struct parser* parser) {
 struct node* parser__comparison (struct parser* parser) {
 	if(parser->currentToken->type == T_NOT){
 		parser->advance(parser);
-		parser->comp(parser);
+		parser__comparison(parser);
 	}
-	struct node* leftNode = parser->arit(parser);
+	struct node* leftNode = parser__arithmeticExp(parser);
 	struct node* leftNode_Temp;
 	struct node* rightNode;	
 	struct token* opToken;
 	while(parser->currentToken->type == T_EQEQ || parser->currentToken->type == T_GT || parser->currentToken->type == T_GTE|| parser->currentToken->type == T_LT || parser->currentToken->type == T_LTE|| parser->currentToken->type == T_NEQ) {
 		opToken = parser->currentToken;
 		parser->advance(parser);
-		rightNode = parser->arit(parser);
+		rightNode = parser__arithmeticExp(parser);
 		leftNode_Temp = leftNode;
 		leftNode = node__init__binExp(opToken, leftNode_Temp, rightNode, parser);
 	}
@@ -215,16 +255,31 @@ struct node* parser__expression(struct parser* parser) {
 		return varAssignNode;	
 	}
 
-	struct node* leftNode = parser->comp(parser);
+	struct node* leftNode = parser__comparison(parser);
 	struct node* leftNode_Temp;
 	struct node* rightNode;	
 	struct token* opToken;
 	while(parser->currentToken->type == T_KEYWORD && (!strcmp(parser->currentToken->value.id_str, "and") || !strcmp(parser->currentToken->value.id_str, "or") || !strcmp(parser->currentToken->value.id_str, "xor"))) {
 		opToken = parser->currentToken;
 		parser->advance(parser);
-		rightNode = parser->comp(parser);
+		rightNode = parser__comparison(parser);
 		leftNode_Temp = leftNode;
 		leftNode = node__init__binExp(opToken, leftNode_Temp, rightNode, parser);
 	}
 	return leftNode;
+}
+
+struct nodeList* parser__statements(struct parser* parser) {
+	struct nodeList* nodes = nodeList__init();
+	while (parser->currentToken->type != T_EOF) {
+		nodes = nodes->append(nodes, parser__expression(parser));
+		if(parser->currentToken->type == T_EOF)
+			break;
+		if(parser->currentToken->type != T_SEMI)
+			error_parser("Expected semicolon or end of file", parser);
+		parser->advance(parser);
+		if(parser->currentToken->type == T_RBRACE)
+			break;
+	}
+	return nodes;
 }
