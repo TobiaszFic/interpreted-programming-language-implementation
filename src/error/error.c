@@ -29,6 +29,14 @@ static void printTroubledChars( struct lexer* lexer, struct token* token) {
 	}
 }
 
+static void printTroubledCharsFromLexer( struct lexer* lexer) {
+	printf("\n\t\t%s\n\t\t",lexer->lines[lexer->lineNumber-1]);
+	for(int i = 0; i<lexer->position; i++)
+		putchar(' ');
+	putchar('^');
+	fflush(stdout);
+}
+
 void error__(FILE* fp) {
 	if(fp == stdin) {
 		launchShell();		
@@ -41,7 +49,7 @@ void error_lexer(char* eMessage, struct lexer* eLexer) {
 	printf("\n Lexer Error: %s", eMessage);
 	printf("\n\tline %d :", eLexer->lineNumber);
 	printf("%s", eLexer->lines[eLexer->lineNumber-1]);
-	printTroubledChars(eLexer, eLexer->tokenList.items[eLexer->tokenList.length-1]);
+	printTroubledCharsFromLexer(eLexer);
 	error__(eLexer->stream);	
 }
 

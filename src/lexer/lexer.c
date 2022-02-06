@@ -177,7 +177,7 @@ struct lexer* lexer__init(FILE* initStream) {
 void lexer__cleanup(struct lexer* lexer) {
 	//tokenList cleanup - we can keep the rest of the lexer until we don't need the list
 	//anymore, since all the other items take up very little space.
-	for(int i = 0; i <= lexer->tokenList.length; i++)
+	for(int i = 0; i < lexer->tokenList.length; i++)
 		free(lexer->tokenList.items[i]);
 	free(lexer->tokenList.items);
 
