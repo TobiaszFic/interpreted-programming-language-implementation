@@ -1,6 +1,6 @@
 # Overview
-Shell, tokenizer, parser and interpreter for a custom programming language, loosely based on BASIC.
-Not useful as a programming language, full of bugs, just an exercise. My next programming language project will be more solid now that I've grasped the basics through trial and error. For this to be usable it would require a major rewrite.
+Shell, tokenizer, parser and interpreter for a custom programming language, loosely inspired by BASIC.
+More of a proof of concept than a tool of any sort.
 
 # Setup
 The makefile uses clang, but the code is compatible with gcc, simply switch the value of the CC variable in the Makefile to be equal to gcc instead of clang.
@@ -17,8 +17,13 @@ Then, to enter the shell (only supported operation mode at the moment, no file i
 ```
 
 # How it works
-Since this is a relatively big project for one person, I built the whole thing to work on simple expressions and then expanded the ability in steps.
-Quick note: the hash symbol ('#') signifies end of file for the shell. It tells the program when to stop reading user input.
+Since this is a relatively big project for me, I first built it to work on simple expressions and then expanded the ability in steps. The program consists of a lexer, parser and interpreter. 
+
+The Lexer takes streams of characters as input and outputs a stream of tokens. The tokens then go into the parser: a hand-built top-down recursive descent parser with error handling, which then in turn outputs an AST (Abstract Syntax Tree). Lastly, the nodes of the AST are visited by the interpreter and executed left-to-right accordingly. 
+
+The output of every program is either a number, being the return value of the last expression executed, or a null character if the last operation return type is null (a function declaration for instance).
+
+Quick disclaimer: the hash symbol ('#') signifies end of file for the shell. It tells the program when to stop reading user input.
 
 
 ## Arithmetic
