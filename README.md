@@ -25,8 +25,10 @@ Since this is a relatively big project for one person, I built the whole thing t
 The error management system is divided into two main parts: the warning section and the error section. Warnings show up without stopping the program, while errors result in relaunching the shell, effectively never finishing the task which led to the error.
 Each stage of interpreting has its own error and warning types. Below are some common examples.
 ### Lexer warning
+<img width="288" alt="Screenshot 2022-02-06 at 17 28 26" src="https://user-images.githubusercontent.com/81037885/152690802-8cb8a8a3-cd08-442d-8c06-146c3b22e288.png">
 
 ### Lexer error
+
 
 ### Memory error
 The memory error is triggered if and only if a pointer allocated by calloc or realloc turns out to be null.
