@@ -29,7 +29,7 @@ void launchShell() {
 		interpreter = interpreter__init();
 		struct number* result = interpreter->interpret(parser->AST);
 		
-		printf("\n\nINTERPRETER: ");
+		//printf("\n\nINTERPRETER: ");
 		putchar('\n');
 		if(result != NULL)
 			result->show(result);	

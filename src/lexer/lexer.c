@@ -84,7 +84,7 @@ static void lexer__lex(struct lexer* lexer) {
 	}
 	lexer->tokenList.items = addSimpleToken(lexer, T_EOF);
 
-	lexer->show(lexer);
+	//lexer->show(lexer);
 
 }
 

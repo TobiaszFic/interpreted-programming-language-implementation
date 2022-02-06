@@ -25,10 +25,10 @@ static struct nodeList* parser__parse (struct parser* parser) { //calls top-most
 	if(parser->currentToken->type != T_EOF) {
 		error_parser("expected '+', '-', '*' or '/'", parser);
 	}
-	printf("\nPARSER: ");
-	fflush(stdout);
-	parser->AST->show(parser->AST);
-	fflush(stdout);
+	//printf("\nPARSER: ");
+	//fflush(stdout);
+	//parser->AST->show(parser->AST);
+	//fflush(stdout);
 	return parser->AST;
 }
 
